@@ -23,19 +23,15 @@ const Cart = () => {
     deselectStore
   } = useSelectionStore();
 
-  // Get all store names from cart
   const allStoreNames = cart.map(store => store.storeName);
   
-  // Get all product IDs from cart
   const allProductIds = cart.flatMap(store => 
     store.products.map(product => product.id)
   );
   
-  // Check if all stores are selected
   const allStoresSelected = allStoreNames.length > 0 && 
     allStoreNames.every(store => selectedStores.includes(store));
 
-  // Toggle select all stores and products
   const toggleSelectAllStores = () => {
     if (allStoresSelected) {
       deselectAllStores();
@@ -53,21 +49,16 @@ const Cart = () => {
   };
 
   const handleRemoveStore = (storeName) => {
-    // Get products from this store before removing
     const store = cart.find(s => s.storeName === storeName);
     const storeProductIds = store?.products.map(p => p.id) || [];
     
-    // Remove store from cart
     removeStore(storeName);
     
-    // Deselect the store
     deselectStore(storeName);
     
-    // Deselect all products from this store
     storeProductIds.forEach(productId => {
       if (selectedProducts.includes(productId)) {
         const updatedProducts = selectedProducts.filter(id => id !== productId);
-        // This will be handled by the store automatically
       }
     });
   };

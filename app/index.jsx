@@ -3,11 +3,13 @@ import React, { useState } from 'react'
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMutation } from '@tanstack/react-query';
+import useUserStore from '../app/stores/userStore';
+
 const { useFonts, Unna_400Regular, Unna_700Bold } = require('@expo-google-fonts/unna');
 
 const SignInPage = () => {
+  const { setUser } = useUserStore();
 
-  //Backend API URL
   const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
   const [ registerData, setRegisterData ] = useState(null);
   const [ registerFormData, setRegisterFormData ] = useState({ //State to hold registration form data
@@ -29,17 +31,17 @@ const SignInPage = () => {
     registerUser: Function to handle user registration by sending form data to the backend API.
     **/
     const registerUser = async (formData) => { //We're using async/await to handle the asynchronous nature of network requests.
-    const response = await fetch(`${apiUrl}/auth/register`, {
-      method: 'POST', //Specifying the HTTP method as POST to send data to the server.
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData), //Converting the form data to a JSON string to send in the request body.
-    });
-    const data = await response.json(); //Parsing the JSON response from the server.
-    setRegisterData(data); //Storing the response data in the registerData state variable. We can use this data to provide feedback to the user.
-    return data;
-  }
+      const response = await fetch(`${apiUrl}/auth/register`, {
+        method: 'POST', //Specifying the HTTP method as POST to send data to the server.
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData), //Converting the form data to a JSON string to send in the request body.
+      });
+      const data = await response.json(); //Parsing the JSON response from the server.
+      setRegisterData(data); //Storing the response data in the registerData state variable. We can use this data to provide feedback to the user.
+      return data;
+    }
 
   const registerMutation = useMutation({ //Using React Query's useMutation hook to manage the registration process.
     mutationFn: registerUser, //Specifying the function to be called when the mutation is triggered.
@@ -83,6 +85,7 @@ const SignInPage = () => {
     onSuccess: (data) => {
       console.log('Login Successful: ', data)
       if (data && data.success) {
+        setUser(data.user);
         router.replace('/tabs/home');
       }
     },

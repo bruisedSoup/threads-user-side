@@ -1,17 +1,60 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ChevronLeft, MoreHorizontal, ChevronDown } from 'lucide-react-native'
+import { ChevronLeft, MoreHorizontal, ChevronDown, Wallet, CreditCard, Banknote, Building2 } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
-import React from 'react'
+import { useMutation } from '@tanstack/react-query'
+import React, { useState } from 'react'
 import CartCard from '../components/CartCard'
 import CustomButton from '../components/CustomButton'
 import useCartStore from '../stores/cartStore'
 import useSelectionStore from '../stores/useSelectionStore'
+import useUserStore from '../stores/userStore'
+
+const apiUrl = process.env.EXPO_API_CREATE_ORDERS_URL || 'http://10.0.2.2:3000/api/orders/';
+
+const createOrderInBackend = async (order) => {
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(order),
+  });
+
+  if (!response.ok) throw new Error("Failed to create order in backend");
+};
+
+const PAYMENT_METHODS = [
+  {
+    id: 'cod',
+    name: 'Cash on Delivery',
+    description: 'Pay when you receive',
+    icon: 'banknote',
+  },
+  {
+    id: 'gcash',
+    name: 'GCash',
+    description: 'Pay with GCash wallet',
+    icon: 'wallet',
+  },
+  {
+    id: '7eleven',
+    name: '7-Eleven',
+    description: 'Pay at any 7-Eleven store',
+    icon: 'building',
+  },
+  {
+    id: 'card',
+    name: 'Credit/Debit Card',
+    description: 'VISA, Mastercard, etc.',
+    icon: 'credit-card',
+  },
+]
 
 const CheckOut = () => {
   const router = useRouter()
   const { cart } = useCartStore()
+  const { user } = useUserStore()
   const { selectedProducts } = useSelectionStore()
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('cod')
 
   // Calculate totals
   const totalItems = cart.reduce((sum, store) => {
@@ -36,9 +79,86 @@ const CheckOut = () => {
   const discount = 0
   const total = subtotal + shippingFee - discount
 
-  const handlePay = () => {
-    // Navigate to home tab after payment
-    router.push('/tabs/home')
+  const getPaymentIcon = (iconName) => {
+    switch (iconName) {
+      case 'banknote':
+        return <Banknote size={24} color="#333" />
+      case 'wallet':
+        return <Wallet size={24} color="#333" />
+      case 'building':
+        return <Building2 size={24} color="#333" />
+      case 'credit-card':
+        return <CreditCard size={24} color="#333" />
+      default:
+        return <Wallet size={24} color="#333" />
+    }
+  }
+
+  const handlePay = async () => {
+    // Prepare order details
+    const orderDetails = {
+      user_id: user.user_id,
+      items: cart.flatMap(store => 
+        store.products
+          .filter(p => selectedProducts.includes(p.id))
+          .map(p => ({
+            _id: p.id,
+            name: p.title,
+            price: p.price,
+            quantity: p.quantity,
+            image: p.image,
+            storeName: store.storeName,
+          }))
+      ),
+      subtotal,
+      shippingFee,
+      discount,
+      total,
+      totalItems,
+    }
+
+    // Handle different payment methods
+    switch (selectedPaymentMethod) {
+      case 'gcash':
+        router.push({
+          pathname: '/payment/GCashPayment',
+          params: { orderDetails: JSON.stringify(orderDetails) }
+        })
+        break
+      
+      case '7eleven':
+        router.push({
+          pathname: '/payment/SevenElevenPayment',
+          params: { orderDetails: JSON.stringify(orderDetails) }
+        })
+        break
+      
+      case 'cod':
+        // For COD, create order directly
+        try {
+          const orderData = {
+            ...orderDetails,
+            paymentMethod: 'cod',
+            paymentStatus: 'pending',
+            orderedAt: new Date().toISOString(),
+          }
+          
+          await createOrderInBackend(orderData)
+          router.push('/tabs/home')
+        } catch (error) {
+          console.error('Error creating order:', error)
+          alert('Failed to place order. Please try again.')
+        }
+        break
+      
+      case 'card':
+        // For card payment, you can add a card payment page similar to GCash
+        alert('Card payment coming soon!')
+        break
+      
+      default:
+        alert('Please select a payment method')
+    }
   }
 
   return (
@@ -77,19 +197,66 @@ const CheckOut = () => {
           ))}
         </View>
 
-        {/* Shipping Information */}
+        {/* Payment Method */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Shipping Information</Text>
-          <View style={styles.paymentCard}>
-            <View style={styles.paymentInfo}>
-              <View style={styles.visaLogo}>
-                <Text style={styles.visaText}>VISA</Text>
-              </View>
-              <Text style={styles.cardNumber}>**** **** **** 2143</Text>
-            </View>
-            <ChevronDown size={20} color="#666" />
+          <Text style={styles.sectionTitle}>Payment Method</Text>
+          <View style={styles.paymentMethodsContainer}>
+            {PAYMENT_METHODS.map((method) => (
+              <TouchableOpacity
+                key={method.id}
+                style={[
+                  styles.paymentMethodCard,
+                  selectedPaymentMethod === method.id && styles.paymentMethodCardSelected
+                ]}
+                onPress={() => setSelectedPaymentMethod(method.id)}
+              >
+                <View style={styles.paymentMethodContent}>
+                  <View style={[
+                    styles.iconContainer,
+                    selectedPaymentMethod === method.id && styles.iconContainerSelected
+                  ]}>
+                    {getPaymentIcon(method.icon)}
+                  </View>
+                  <View style={styles.paymentMethodInfo}>
+                    <Text style={[
+                      styles.paymentMethodName,
+                      selectedPaymentMethod === method.id && styles.paymentMethodNameSelected
+                    ]}>
+                      {method.name}
+                    </Text>
+                    <Text style={styles.paymentMethodDescription}>
+                      {method.description}
+                    </Text>
+                  </View>
+                </View>
+                <View style={[
+                  styles.radioButton,
+                  selectedPaymentMethod === method.id && styles.radioButtonSelected
+                ]}>
+                  {selectedPaymentMethod === method.id && (
+                    <View style={styles.radioButtonInner} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
+
+        {/* Shipping Information */}
+        {selectedPaymentMethod === 'card' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Card Information</Text>
+            <View style={styles.paymentCard}>
+              <View style={styles.paymentInfo}>
+                <View style={styles.visaLogo}>
+                  <Text style={styles.visaText}>VISA</Text>
+                </View>
+                <Text style={styles.cardNumber}>**** **** **** 2143</Text>
+              </View>
+              <ChevronDown size={20} color="#666" />
+            </View>
+          </View>
+        )}
 
         {/* Order Summary */}
         <View style={styles.section}>
@@ -178,6 +345,75 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     color: '#000',
+  },
+  paymentMethodsContainer: {
+    gap: 12,
+  },
+  paymentMethodCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8f8f8',
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+  },
+  paymentMethodCardSelected: {
+    backgroundColor: '#f0f9ff',
+    borderColor: '#000',
+  },
+  paymentMethodContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  iconContainerSelected: {
+    backgroundColor: '#e6f3ff',
+  },
+  paymentMethodInfo: {
+    flex: 1,
+  },
+  paymentMethodName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  paymentMethodNameSelected: {
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  paymentMethodDescription: {
+    fontSize: 13,
+    color: '#666',
+  },
+  radioButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButtonSelected: {
+    borderColor: '#000',
+  },
+  radioButtonInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#000',
   },
   paymentCard: {
     flexDirection: 'row',

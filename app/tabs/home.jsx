@@ -1,23 +1,38 @@
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { LayoutGrid } from 'lucide-react-native';
-
-import WelcomeHeader from '../components/WelcomeHeader';
-import SearchBar from '../components/SearchBar';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Bottoms from '../components/bottomicon';
 import CustomButton from '../components/CustomButton';
 import DressIcon from '../components/dressicon';
-import Shirt from '../components/shirticon';
-import Bottoms from '../components/bottomicon';
-import Tops from '../components/topsicon';
 import ProductSuggestions from '../components/ProductSuggestions';
-import { products } from '../data/product';
+import SearchBar from '../components/SearchBar';
+import Shirt from '../components/shirticon';
+import Tops from '../components/topsicon';
+import WelcomeHeader from '../components/WelcomeHeader';
+
+const fetchProducts = async () => {
+  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const response = await fetch(`${apiUrl}/products/`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch products');
+  }
+  const data = await response.json();
+  return data.products;
+};
 
 const Home = () => {
   const [selectedFilter, setSelectedFilter] = useState("All Items");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Define filter icons and matching product types
+  const { data: productsData } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+    onSuccess: (data) => { console.log('Products fetched successfully:', data); },
+    onError: (error) => { console.error('Error fetching products:', error); },
+  });
+
   const filterIcons = [
     { name: "Dress", icon: DressIcon, type: "Dress Modern" },
     { name: "T-Shirt", icon: Shirt, type: "T-Shirt" },
@@ -25,21 +40,26 @@ const Home = () => {
     { name: "Tops", icon: Tops, type: "Top" }
   ];
 
-  // Flatten nested structure
-  const productsFlat = products?.flatMap(store =>
-    store.products.map(product => ({
-      ...product,
-      storeName: store.storeName,
-    }))
-  ) || [];
+  const products = productsData || [];
+  const productsFlat = products.map(product => ({
+    id: product._id,
+    image: product.image ? { uri: product.image } : require('../../assets/images/no image.jpg'),
+    title: product.name,
+    price: product.price,
+    sizePrices: product.sizePrices || {},
+    type: product.category?.name || '',
+    rating: product.review_summary?.avg_rating || 0,
+    reviews: product.review_summary?.rating_count || 0,
+    description: product.description || '',
+    storeName: product.seller_id?.store_name || '',
+    quantity: product.stock_quantity || 0,
+  }));
 
-  // Filter by type
   let filteredProducts =
     selectedFilter === "All Items"
       ? productsFlat
       : productsFlat.filter(product => product.type === selectedFilter);
 
-  // Filter by search query
   if (searchQuery.trim() !== "") {
     filteredProducts = filteredProducts.filter(product => {
       const searchLower = searchQuery.toLowerCase();
@@ -142,7 +162,8 @@ const styles = StyleSheet.create({
   searchBarContainer: {
     alignItems: 'center',
     paddingHorizontal: 10,
-    marginTop: -10,
+    marginTop: 10,
+    marginBottom: 20,
     color: 'black',
   },
   filterTabContainer: {
