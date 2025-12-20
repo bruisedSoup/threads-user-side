@@ -7,8 +7,10 @@ const WelcomeHeader = (props) => {
   const router = useRouter();
 
   const handleOnPress = () => {
-    router.push('/tabs/profile'); // adapt path if needed
+    router.push('/tabs/profile');
   };
+
+  const profileImage = props.image || props.profile_image;
 
   return (
     <SafeAreaView style={styles.headerContainer}>
@@ -17,7 +19,11 @@ const WelcomeHeader = (props) => {
         <Text style={styles.userNameText}>{capitalize(props.name)}</Text>
       </View>
       <TouchableOpacity onPress={handleOnPress}>
-        <Image source={{ uri: props.image }} style={styles.profileImage} />
+        <Image 
+          source={{ uri: profileImage }} 
+          style={styles.profileImage}
+          defaultSource={require('../../assets/images/no image.jpg')} 
+        />
       </TouchableOpacity>
     </SafeAreaView>
   )
@@ -46,6 +52,7 @@ const styles = StyleSheet.create({
     height: 65,
     borderRadius: 65 / 2,
     resizeMode: 'cover',
+    backgroundColor: '#f0f0f0',
   }
 })
 

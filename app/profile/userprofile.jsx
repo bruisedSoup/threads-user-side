@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIn
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Buffer } from 'buffer';
 import BackIcon from './backicon.jsx';
 import ExpandIcon from '../components/expandicon.jsx'; 
 import useUserStore from '../stores/userStore.js';
@@ -66,7 +67,22 @@ const UserProfile = () => {
     }
   };
 
-  const profilePicture = userData?.profile_image?.replace('/svg?', '/png?') || null;
+  // Get profile image - prioritize profile_picture, fallback to profile_image
+  const getProfileImage = () => {
+    if (userData?.profile_picture?.data) {
+      try {
+        const base64String = Buffer.from(userData.profile_picture.data).toString('base64');
+        return `data:${userData.profile_picture.mimetype};base64,${base64String}`;
+      } catch (error) {
+        console.error('Error converting profile picture to base64:', error);
+      }
+    }
+    // Fallback to profile_image (DiceBear API)
+    return userData?.profile_image?.replace('/svg?', '/png?') || null;
+  };
+
+  const profilePicture = getProfileImage();
+  
   const maskedPhone = userData?.phone_number 
     ? `${'*'.repeat(Math.max(0, userData.phone_number.length - 2))}${userData.phone_number.slice(-2)}`
     : null;
@@ -84,13 +100,13 @@ const UserProfile = () => {
         currentValue={currentValue}
         userId={storeUser?._id}
         onClose={() => setEditModalVisible(false)}
-        onSave={() => {}} // No longer needed but keeping for compatibility
+        onSave={() => {}}
       />
 
       <EditProfilePictureModal
         visible={profilePictureModalVisible}
         userId={storeUser?._id}
-        currentImage={userData?.profile_image}
+        currentImage={profilePicture}
         onClose={() => setProfilePictureModalVisible(false)}
       />
 
@@ -105,7 +121,6 @@ const UserProfile = () => {
 
         <Text style={styles.title}>Edit Profile</Text>
 
-        {/* Add a refresh button */}
         <TouchableOpacity 
           style={styles.refreshButton}
           onPress={handleRefresh}
@@ -121,7 +136,7 @@ const UserProfile = () => {
         <View style={styles.pfpContainer}>
           {profilePicture ? (
             <Image
-              source={{ uri: profilePicture || null }}
+              source={{ uri: profilePicture }}
               style={styles.profileImage}
             />
           ) : (

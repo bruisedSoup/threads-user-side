@@ -63,14 +63,24 @@ const EditProfilePictureModal = ({ visible, userId, currentImage, onClose, onSav
   const uploadImage = async (imageAsset) => {
     setIsLoading(true);
     try {
-      const base64Image = `data:image/jpeg;base64,${imageAsset.base64}`;
+      // Extract filename from URI or create a default one
+      const uriParts = imageAsset.uri.split('/');
+      const filename = uriParts[uriParts.length - 1] || `profile_${Date.now()}.jpg`;
+      
+      // Prepare profile_picture object with metadata
+      const profilePictureData = {
+        filename: filename,
+        mimetype: imageAsset.mimeType || 'image/jpeg',
+        data: imageAsset.base64,
+        size: imageAsset.fileSize || imageAsset.base64.length
+      };
       
       const response = await fetch(`${API_URL}/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ profile_image: base64Image }),
+        body: JSON.stringify({ profile_picture: profilePictureData }),
       });
 
       if (!response.ok) {
@@ -78,7 +88,9 @@ const EditProfilePictureModal = ({ visible, userId, currentImage, onClose, onSav
         throw new Error(errorData.message || 'Failed to update profile picture');
       }
 
-      updateUserField('profile_image', base64Image);
+      // Convert base64 to data URI for local display
+      const base64Image = `data:${profilePictureData.mimetype};base64,${imageAsset.base64}`;
+      updateUserField('profile_picture', profilePictureData);
       
       await Promise.all([
         queryClient.invalidateQueries(['user', userId]),
@@ -111,14 +123,14 @@ const EditProfilePictureModal = ({ visible, userId, currentImage, onClose, onSav
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ profile_image: null }),
+                body: JSON.stringify({ profile_picture: null }),
               });
 
               if (!response.ok) {
                 throw new Error('Failed to remove profile picture');
               }
 
-              updateUserField('profile_image', null);
+              updateUserField('profile_picture', null);
               
               await Promise.all([
                 queryClient.invalidateQueries(['user', userId]),
@@ -138,6 +150,25 @@ const EditProfilePictureModal = ({ visible, userId, currentImage, onClose, onSav
     );
   };
 
+  // Helper function to get display image URI
+  const getDisplayImageUri = () => {
+    if (!currentImage) return null;
+    
+    // If currentImage is already a data URI or regular URI
+    if (typeof currentImage === 'string') {
+      return currentImage;
+    }
+    
+    // If currentImage is a profile_picture object with base64 data
+    if (currentImage.data && currentImage.mimetype) {
+      return `data:${currentImage.mimetype};base64,${currentImage.data}`;
+    }
+    
+    return null;
+  };
+
+  const displayUri = getDisplayImageUri();
+
   return (
     <Modal
       animationType="slide"
@@ -153,8 +184,8 @@ const EditProfilePictureModal = ({ visible, userId, currentImage, onClose, onSav
           </View>
 
           <View style={styles.imagePreviewContainer}>
-            {currentImage ? (
-              <Image source={{ uri: currentImage }} style={styles.previewImage} />
+            {displayUri ? (
+              <Image source={{ uri: displayUri }} style={styles.previewImage} />
             ) : (
               <View style={styles.placeholderPreview}>
                 <Text style={styles.placeholderEmoji}>👤</Text>
@@ -179,7 +210,7 @@ const EditProfilePictureModal = ({ visible, userId, currentImage, onClose, onSav
               <Text style={styles.optionText}>Take Photo</Text>
             </TouchableOpacity>
 
-            {currentImage && (
+            {displayUri && (
               <TouchableOpacity
                 style={[styles.optionButton, styles.removeButton]}
                 onPress={removeProfilePicture}

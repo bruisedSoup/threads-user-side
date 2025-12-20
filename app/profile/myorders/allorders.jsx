@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import BackIcon from '../backicon';
 import CustomSearchBar from '../../components/CustomSearch';
 import EmptyIcon from '../../components/empty';
-import ProductSuggestions from '../../components/ProductSuggestions';
 import StoreIcon from '../../components/storeicon';
 import { useQuery } from '@tanstack/react-query';
 import useUserStore from '../../stores/userStore';

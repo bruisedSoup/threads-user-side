@@ -60,6 +60,18 @@ const Home = () => {
     handleRefresh();
   }, [handleRefresh]);
 
+  const getProfileImage = () => {
+    if (user?.profile_picture?.data) {
+      try {
+        const base64String = Buffer.from(user.profile_picture.data).toString('base64');
+        return `data:${user.profile_picture.mimetype};base64,${base64String}`;
+      } catch (error) {
+        console.error('Error converting profile picture to base64:', error);
+      }
+    }
+    return user?.profile_image?.replace('/svg?', '/png?') || null;
+  };
+
   const filterIcons = [
     { name: "Dress", icon: DressIcon, type: "Dress" },
     { name: "T-Shirt", icon: Shirt, type: "T-Shirt" },
@@ -119,7 +131,10 @@ const Home = () => {
     <SafeAreaView style={styles.container}>
       <View style={{ zIndex: 10, backgroundColor: '#fff' }}>
         <View style={styles.headerRow}>
-          <WelcomeHeader name={`${user?.first_name || ""} ${user?.last_name || ""}`} image={user?.profile_image?.replace('/svg?', '/png?') || ""} />
+          <WelcomeHeader 
+            name={`${user?.first_name || ""} ${user?.last_name || ""}`} 
+            image={getProfileImage()}
+          />
         </View>
         <View style={styles.searchBarContainer}>
           <SearchBar 

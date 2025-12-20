@@ -48,6 +48,7 @@ const SignInPage = () => {
     onSuccess: (data) => { //Callback function to handle successful registration.
       console.log('Registration Successful: ', data)
       if (data && data.success) {//If the registration is successful, navigate to the home screen.
+        setUser(data.token, data.user.user_id);
         router.replace('/tabs/home');
       }
     },
@@ -68,7 +69,6 @@ const SignInPage = () => {
     });
   }
 
-  //Login Handlers. The process is similar to registration.
   const loginUser = async (formData) => { 
     const response = await fetch(`${apiUrl}/auth/login`, { 
       method: 'POST',
@@ -106,7 +106,6 @@ const SignInPage = () => {
       [fieldName]: text,
     });
   }
-
 
   //Frontend State
   const [activeTab, setActiveTab] = useState("signIn");

@@ -49,12 +49,29 @@ const Profile = () => {
 
   const handleSettingsPress = () => { router.push('/profile/settings'); };
 
+  // Get profile image - prioritize profile_picture, fallback to profile_image
+  const getProfileImage = () => {
+    if (user?.profile_picture?.data) {
+      try {
+        const base64String = Buffer.from(user.profile_picture.data).toString('base64');
+        return `data:${user.profile_picture.mimetype};base64,${base64String}`;
+      } catch (error) {
+        console.error('Error converting profile picture to base64:', error);
+      }
+    }
+    // Fallback to profile_image (DiceBear API)
+    return user?.profile_image?.replace('/svg?', '/png?') || null;
+  };
+
+  const profileImageUri = getProfileImage();
+
   const handleAvatarPress = () => {
     router.push({
       pathname: '/profile/userprofile',
-      params: { profilePicture:  user.profile_image || null },
+      params: { profilePicture: profileImageUri },
     });
   };
+
   const handleTabPress = route => { router.push(route); };
 
   const products = productsData || [];
@@ -104,7 +121,7 @@ const Profile = () => {
             activeOpacity={0.7}
           >
             <Image
-              source={{uri: user?.profile_image?.replace('/svg?', '/png?') || ""}}
+              source={{ uri: profileImageUri }}
               style={styles.avatar}
               defaultSource={require('../../app/profile/static_avatar.jpg')}
             />
