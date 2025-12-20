@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { LayoutGrid } from 'lucide-react-native';
-import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { LayoutGrid, RefreshCw } from 'lucide-react-native';
+import { useState, useCallback } from 'react';
+import { ScrollView, StyleSheet, View, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Bottoms from '../components/bottomicon';
 import CustomButton from '../components/CustomButton';
@@ -11,6 +11,8 @@ import SearchBar from '../components/SearchBar';
 import Shirt from '../components/shirticon';
 import Tops from '../components/topsicon';
 import WelcomeHeader from '../components/WelcomeHeader';
+import { Buffer } from 'buffer';
+import useUserStore from '../stores/userStore';
 
 const fetchProducts = async () => {
   const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
@@ -25,35 +27,76 @@ const fetchProducts = async () => {
 const Home = () => {
   const [selectedFilter, setSelectedFilter] = useState("All Items");
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const { user } = useUserStore();
 
-  const { data: productsData } = useQuery({
+  const { 
+    data: productsData, 
+    refetch, 
+    isRefetching 
+  } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
-    onSuccess: (data) => { console.log('Products fetched successfully:', data); },
-    onError: (error) => { console.error('Error fetching products:', error); },
+    onSuccess: (data) => { 
+      console.log('Products fetched successfully:', data);
+    },
+    onError: (error) => { 
+      console.error('Error fetching products:', error); 
+    },
   });
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing products:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
+  const onRefresh = useCallback(() => {
+    handleRefresh();
+  }, [handleRefresh]);
+
   const filterIcons = [
-    { name: "Dress", icon: DressIcon, type: "Dress Modern" },
+    { name: "Dress", icon: DressIcon, type: "Dress" },
     { name: "T-Shirt", icon: Shirt, type: "T-Shirt" },
     { name: "Bottoms", icon: Bottoms, type: "Bottoms" },
-    { name: "Tops", icon: Tops, type: "Top" }
+    { name: "Tops", icon: Tops, type: "Tops" }
   ];
 
   const products = productsData || [];
-  const productsFlat = products.map(product => ({
-    id: product._id,
-    image: product.image ? { uri: product.image } : require('../../assets/images/no image.jpg'),
-    title: product.name,
-    price: product.price,
-    sizePrices: product.sizePrices || {},
-    type: product.category?.name || '',
-    rating: product.review_summary?.avg_rating || 0,
-    reviews: product.review_summary?.rating_count || 0,
-    description: product.description || '',
-    storeName: product.seller_id?.store_name || '',
-    quantity: product.stock_quantity || 0,
-  }));
+  const productsFlat = products.map(product => {
+    let imageUri = require('../../assets/images/no image.jpg');
+
+    if (product.product_images && product.product_images[0]) {
+      const img = product.product_images[0];
+      try {
+        const base64String = Buffer.from(img.data).toString("base64");
+        imageUri = {
+          uri: `data:${img.mimetype};base64,${base64String}` || null
+        };
+      } catch (error) {
+        console.error('Error converting image to base64:', error);
+        imageUri = require('../../assets/images/no image.jpg');
+      }
+    }
+    return {
+      id: product._id,
+      image: imageUri,
+      title: product.name,
+      price: product.price,
+      sizePrices: product.sizePrices || {},
+      type: product.category_id?.map(category => category.name).join(', ') || 'Uncategorized',
+      rating: product.review_summary?.avg_rating || 0,
+      reviews: product.review_summary?.rating_count || 0,
+      description: product.description || '',
+      storeName: product.seller_id?.store_name || '',
+      quantity: product.stock_quantity || 0,
+    };
+  });
 
   let filteredProducts =
     selectedFilter === "All Items"
@@ -74,9 +117,10 @@ const Home = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={{ zIndex: 10, backgroundColor: '#fff' }}>
-        <WelcomeHeader name="User One" />
+        <View style={styles.headerRow}>
+          <WelcomeHeader name={`${user?.first_name || ""} ${user?.last_name || ""}`} image={user?.profile_image?.replace('/svg?', '/png?') || ""} />
+        </View>
         <View style={styles.searchBarContainer}>
           <SearchBar 
             placeholder="Search clothes..." 
@@ -136,9 +180,21 @@ const Home = () => {
         </ScrollView>
       </View>
 
-      {/* Product Section */}
+      {/* Product Section with Pull-to-Refresh */}
       <View style={styles.productSuggestionsContainer}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing || isRefetching}
+              onRefresh={onRefresh}
+              colors={['#000']}
+              tintColor="#000"
+              title="Pull to refresh"
+              titleColor="#666"
+            />
+          }
+        >
           <ProductSuggestions
             products={filteredProducts}
             numColumns={2}
@@ -158,6 +214,14 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 60,
     marginTop: 5,
+  },
+  headerRow: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingTop: 5,
+  },
+  refreshButtonContainer: {
+    marginBottom: 10,
   },
   searchBarContainer: {
     alignItems: 'center',

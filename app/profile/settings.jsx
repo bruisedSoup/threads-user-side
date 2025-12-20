@@ -15,7 +15,7 @@ const SettingsScreen = () => {
   };
 
   const handleAccountSecurityPress = () => {
-    router.push('/profile/account_security');
+    router.push('./userprofile');
   };
   const handleMyAddressPress = () => {
     router.push('/profile/myaddress');
@@ -24,6 +24,22 @@ const SettingsScreen = () => {
   const handleBankCardPress = () => {
     router.push('/profile/bank');
   };
+
+  const handleHelpCenterPress = () => {
+    router.push('./support/HelpCentreScreen');
+  };
+
+  const handleCommunityRulesPress = () => {
+    router.push('./support/CommunityRulesScreen');
+  };
+
+  const handlePoliciesPress = () => {
+    router.push('./support/PoliciesScreen');
+  };
+
+  const handleAboutPress = () => {
+    router.push('./support/AboutScreen');
+  }
 
   const SettingsItem = ({ label, onPress }) => (
     <TouchableOpacity 
@@ -67,11 +83,11 @@ const SettingsScreen = () => {
         <SettingsItem label="Privacy Settings" />
 
         <SectionHeader title="Support" />
-        <SettingsItem label="Help Centre" />
-        <SettingsItem label="Community Rules" />
-        <SettingsItem label="Policies" />
-        <SettingsItem label="About" />
-        <SettingsItem label="Request Account Deletion" />
+        <SettingsItem label="Help Centre" onPress={handleHelpCenterPress} />
+        <SettingsItem label="Community Rules" onPress={handleCommunityRulesPress} />
+        <SettingsItem label="Policies" onPress={handlePoliciesPress} />
+        <SettingsItem label="About" onPress={handleAboutPress} />
+        {/* <SettingsItem label="Request Account Deletion" /> */}
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

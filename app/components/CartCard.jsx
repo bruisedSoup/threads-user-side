@@ -20,7 +20,6 @@ const CartCard = ({
   const { updateQuantity, removeFromCart } = useCartStore();
   const [isEditing, setIsEditing] = useState(false);
 
-  // Update quantity in cart store when changed
   const handleQuantityChange = (newQuantity) => {
     setQuantity(newQuantity);
     updateQuantity(id, newQuantity);
@@ -40,7 +39,7 @@ const CartCard = ({
         </TouchableOpacity>
         
         <View style={styles.imageContainer}>
-            <Image source={image} style={styles.image} />
+            <Image source={{uri:image}} style={styles.image} />
         </View>
         
         <View style={styles.productInfoContainer}>

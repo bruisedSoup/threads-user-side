@@ -85,7 +85,7 @@ const SignInPage = () => {
     onSuccess: (data) => {
       console.log('Login Successful: ', data)
       if (data && data.success) {
-        setUser(data.user);
+        setUser(data.token, data.user.user_id);
         router.replace('/tabs/home');
       }
     },

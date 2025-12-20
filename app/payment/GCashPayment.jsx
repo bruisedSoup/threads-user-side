@@ -13,22 +13,18 @@ const GCashPayment = () => {
   const [isPaid, setIsPaid] = useState(false)
   const params = useLocalSearchParams()
   
-  // `orderDetails` is passed as a JSON string from the checkout page
   const orderDetails = params?.orderDetails ? JSON.parse(params.orderDetails) : null
-  const total = orderDetails?.total || 0
+  const total = orderDetails?.order_total || 0
 
   const handleOpenGCash = () => {
-    // Simulate opening GCash app
     alert('Opening GCash app...')
   }
 
   const handleConfirmPayment = async () => {
     setIsProcessing(true)
     
-    // Simulate payment processing
     setTimeout(async () => {
       try {
-        // Create order in backend
         const orderData = {
           ...orderDetails,
           paymentMethod: 'gcash',
@@ -46,7 +42,6 @@ const GCashPayment = () => {
           setIsPaid(true)
           setIsProcessing(false)
           
-          // Navigate to success page after 2 seconds
           setTimeout(() => {
             router.push('/tabs/home')
           }, 2000)
@@ -146,7 +141,6 @@ const GCashPayment = () => {
           <Text style={styles.qrLabel}>Scan QR Code</Text>
           <View style={styles.qrCodeBox}>
             <View style={styles.qrCode}>
-              {/* QR Code Pattern - You can replace this with an actual QR code generator */}
               <View style={styles.qrPattern}>
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((row) => (
                   <View key={row} style={styles.qrRow}>

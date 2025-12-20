@@ -3,8 +3,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import React from 'react'
 import { useRouter } from 'expo-router'
 
-const StaticAvatar = require('../profile/static_avatar.jpg')
-
 const WelcomeHeader = (props) => {
   const router = useRouter();
 
@@ -19,7 +17,7 @@ const WelcomeHeader = (props) => {
         <Text style={styles.userNameText}>{capitalize(props.name)}</Text>
       </View>
       <TouchableOpacity onPress={handleOnPress}>
-        <Image source={StaticAvatar} style={styles.profileImage} />
+        <Image source={{ uri: props.image }} style={styles.profileImage} />
       </TouchableOpacity>
     </SafeAreaView>
   )

@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import BackIcon from './backicon.jsx'; 
+import useUserStore from '../stores/userStore.js';
 
 const MyAddress = () => {
   const router = useRouter();
+  const { user } = useUserStore();
 
   const handleBackPress = () => {
     router.back();
@@ -13,6 +15,9 @@ const MyAddress = () => {
   const handleAddAddress = () => {
     router.push('/profile/newaddress');
   };
+
+  // Get addresses from user data, default to empty array if none exist
+  const addresses = user?.addresses || [];
 
   return (
     <View style={styles.container}>
@@ -35,22 +40,43 @@ const MyAddress = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Section Label */}
-        <Text style={styles.sectionLabel}>Address</Text>
+        <Text style={styles.sectionLabel}>
+          {addresses.length > 0 ? 'Addresses' : 'No Addresses Yet'}
+        </Text>
 
-        {/* Address Card */}
-        <View style={styles.addressCard}>
-          <Text style={styles.addressName}>User Uno</Text>
-          <Text style={styles.addressPhone}>+ (63) 965 401 4148</Text>
-          <Text style={styles.addressDetail}>Zone 6, Cugman</Text>
-          <Text style={styles.addressDetail}>
-            Cagayan de Oro City, Misamis Oriental, Mindanao, 9000
-          </Text>
-        </View>
+        {/* Address Cards */}
+        {addresses.length > 0 ? (
+          addresses.map((address, index) => (
+            <View key={index} style={styles.addressCard}>
+              <View style={styles.addressHeader}>
+                <Text style={styles.addressName}>
+                  {user?.first_name} {user?.last_name}
+                </Text>
+                {address.is_default && (
+                  <View style={styles.defaultBadge}>
+                    <Text style={styles.defaultText}>Default</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.addressType}>{address.address_type}</Text>
+              <Text style={styles.addressDetail}>{address.street}</Text>
+              <Text style={styles.addressDetail}>
+                {address.city}, {address.province}, {address.postal_code}
+              </Text>
+            </View>
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>
+              You haven&apos;t added any addresses yet
+            </Text>
+          </View>
+        )}
 
         {/* Add Address Button */}
         <TouchableOpacity style={styles.addAddressBtn} onPress={handleAddAddress}>
           <View style={styles.plusCircle}>
-            <Text style={styles.plusText}>＋</Text>
+            <Text style={styles.plusText}>+</Text>
           </View>
           <Text style={styles.addAddressText}>Add a new address</Text>
         </TouchableOpacity>
@@ -118,22 +144,52 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
+  addressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   addressName: {
     fontWeight: 'bold',
     color: '#222',
     fontSize: 15,
-    marginBottom: 2,
   },
-  addressPhone: {
-    color: '#999',
+  defaultBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  defaultText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  addressType: {
+    color: '#666',
     fontSize: 13,
-    marginBottom: 6,
+    marginBottom: 4,
     fontWeight: '500',
+    textTransform: 'capitalize',
   },
   addressDetail: {
     color: '#666',
     fontSize: 13,
     marginBottom: 1,
+  },
+  emptyState: {
+    backgroundColor: '#fff',
+    paddingVertical: 40,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  emptyText: {
+    color: '#999',
+    fontSize: 14,
+    textAlign: 'center',
   },
   addAddressBtn: {
     flexDirection: 'row',

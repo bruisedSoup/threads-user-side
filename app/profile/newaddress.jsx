@@ -40,15 +40,16 @@ const EditPrimaryAddress = () => {
   const [city, setCity] = useState(''); 
   const [province, setProvince] = useState(''); 
   const [postal_code, setPostalCode] = useState(''); 
-  const [is_default, setIsDefault] = useState(true); 
+  const [is_default, setIsDefault] = useState(false); 
 
-  const { user } = useUserStore();
-  const userId = user ? user.user_id : null;
+  const { user, refreshUser } = useUserStore();
+  const userId = user ? user._id : null;
 
   const addressMutation = useMutation({
     mutationFn: (addressData) => createAddress(userId, addressData),
     onSuccess: () => {
       queryClient.invalidateQueries(['user', userId]);
+      refreshUser();
       alert('Address saved successfully!');
       router.back();
     },

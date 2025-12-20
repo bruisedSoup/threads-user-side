@@ -10,37 +10,84 @@ import ReturnsIcon from '../../app/profile/myordersicon/returnsicon.jsx';
 import WishlistIcon from '../../app/profile/wishlisticon/wishlisticon.jsx';
 import FollowingsIcon from '../../app/profile/wishlisticon/followingsicon.jsx';
 import ProductSuggestions from '../components/ProductSuggestions';
-import { products } from '../data/product';
 import useIconStore from '../stores/iconStore';
+import useUserStore from '../stores/userStore.js';
+import { useQuery } from '@tanstack/react-query';
+import { Buffer } from 'buffer';
 
+const fetchProducts = async () => {
+  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const response = await fetch(`${apiUrl}/products/`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch products');
+  }
+  const data = await response.json();
+  return data.products;
+};
 
 const Profile = () => {
   const router = useRouter();
 
   const { favorites } = useIconStore();
 
+  const { user }  = useUserStore();
+
+  const followingsCount = user?.following_seller_ids?.length || 0;
+
+  const { 
+    data: productsData
+  } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+    onSuccess: (data) => { 
+      console.log('Products fetched successfully:', data);
+    },
+    onError: (error) => { 
+      console.error('Error fetching products:', error); 
+    },
+  });
+
   const handleSettingsPress = () => { router.push('/profile/settings'); };
 
   const handleAvatarPress = () => {
     router.push({
       pathname: '/profile/userprofile',
-      params: { profilePicture: 'static_avatar' },
+      params: { profilePicture:  user.profile_image || null },
     });
   };
   const handleTabPress = route => { router.push(route); };
 
-  const userData = {
-    name: 'User One',
-    username: 'My Profile',
-    profilePicture: require('../../app/profile/static_avatar.jpg'),
-  };
+  const products = productsData || [];
+  
+  const productsFlat = products.map(product => {
+    let imageUri = require('../../assets/images/no image.jpg');
 
-  const productsFlat = products.flatMap(store =>
-    store.products.map(product => ({
-      ...product,
-      storeName: store.storeName,
-    }))
-  );
+    if (product.product_images && product.product_images[0]) {
+      const img = product.product_images[0];
+      try {
+        const base64String = Buffer.from(img.data).toString("base64");
+        imageUri = {
+          uri: `data:${img.mimetype};base64,${base64String}`
+        };
+      } catch (error) {
+        console.error('Error converting image to base64:', error);
+        imageUri = require('../../assets/images/no image.jpg');
+      }
+    }
+    return {
+      id: product._id,
+      image: imageUri,
+      title: product.name,
+      price: product.price,
+      sizePrices: product.sizePrices || {},
+      type: product.category_id?.map(category => category.name).join(', ') || 'Uncategorized',
+      rating: product.review_summary?.avg_rating || 0,
+      reviews: product.review_summary?.rating_count || 0,
+      description: product.description || '',
+      storeName: product.seller_id?.store_name || '',
+      quantity: product.stock_quantity || 0,
+    };
+  });
 
   return (
     <View style={styles.container}>
@@ -57,14 +104,14 @@ const Profile = () => {
             activeOpacity={0.7}
           >
             <Image
-              source={userData.profilePicture}
+              source={{uri: user?.profile_image?.replace('/svg?', '/png?') || ""}}
               style={styles.avatar}
               defaultSource={require('../../app/profile/static_avatar.jpg')}
             />
           </TouchableOpacity>
           <View style={styles.userInfo}>
-            <Text style={styles.title}>{userData.name}</Text>
-            <Text style={styles.prof}>{userData.username}</Text>
+            <Text style={styles.title}>{`${user?.first_name || 'User'} ${user?.last_name || ''}`}</Text>
+            <Text style={styles.prof}>{user?.username || 'username'}</Text>
           </View>
         </View>
       </View>
@@ -146,7 +193,7 @@ const Profile = () => {
               <Text style={styles.columnTitle}>Followings</Text>
               <TouchableOpacity style={styles.columnItem} onPress={() => handleTabPress('/profile/following')} activeOpacity={0.7}>
                 <FollowingsIcon width={24} height={24} />
-                <Text style={styles.columnText}>1 followings</Text>
+                <Text style={styles.columnText}>{followingsCount} followings</Text>
               </TouchableOpacity>
             </View>
           </View>
