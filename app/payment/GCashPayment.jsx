@@ -5,7 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import React, { useState } from 'react'
 import CustomButton from '../components/CustomButton'
 
-const apiUrl = process.env.EXPO_API_CREATE_ORDERS_URL || 'http://10.0.2.2:3000/api/orders/';
+const apiUrl = process.env.EXPO_API_CREATE_ORDERS_URL || 'http://192.168.1.2:3000/api/orders/';
 
 const GCashPayment = () => {
   const router = useRouter()

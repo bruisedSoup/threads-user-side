@@ -6,7 +6,7 @@ import StoreIcon from '../../components/storeicon';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const fetchOrderDetails = async (orderId) => {
-  const apiUrl = process.env.EXPO_API_ORDERS_URL || 'http://10.0.2.2:3000/api/orders';
+  const apiUrl = process.env.EXPO_API_ORDERS_URL || 'http://192.168.1.2:3000/api/orders';
   const response = await fetch(`${apiUrl}/${orderId}`);
   if (!response.ok) {
     throw new Error('Failed to fetch order details');
@@ -16,7 +16,7 @@ const fetchOrderDetails = async (orderId) => {
 };
 
 const cancelOrder = async (orderId) => {
-  const apiUrl = process.env.EXPO_API_ORDERS_URL || 'http://10.0.2.2:3000/api/orders';
+  const apiUrl = process.env.EXPO_API_ORDERS_URL || 'http://192.168.1.2:3000/api/orders';
   const response = await fetch(`${apiUrl}/${orderId}/status`, {
     method: 'PUT',
     headers: {

@@ -10,7 +10,7 @@ import { Buffer } from 'buffer';
 const { width } = Dimensions.get('window');
 
 const fetchSeller = async (sellerId) => {
-  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
   const response = await fetch(`${apiUrl}/sellers/${sellerId}`);
   
   if (!response.ok) {
@@ -27,7 +27,7 @@ const fetchSeller = async (sellerId) => {
 };
 
 const fetchSellerProducts = async (sellerId, page = 1, limit = 20) => {
-  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
   const response = await fetch(`${apiUrl}/sellers/${sellerId}/products?page=${page}&limit=${limit}`);
   if (!response.ok) {
     throw new Error('Failed to fetch products');
@@ -37,7 +37,7 @@ const fetchSellerProducts = async (sellerId, page = 1, limit = 20) => {
 };
 
 const toggleFollowSeller = async ({ userId, sellerId, isFollowing }) => {
-  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
   const url = isFollowing 
     ? `${apiUrl}/users/${userId}/follow/${sellerId}`
     : `${apiUrl}/users/${userId}/follow`;

@@ -9,7 +9,7 @@ import useUserStore from '../stores/userStore.js';
 import EditFieldModal from './EditFieldModal';
 import EditProfilePictureModal from './EditProfilePictureModal';
 
-const API_URL = 'http://10.0.2.2:3000/api/users'; 
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api"; 
 
 const UserProfile = () => {
   const router = useRouter();
@@ -25,7 +25,7 @@ const UserProfile = () => {
   const { data: userData } = useQuery({
     queryKey: ['user', storeUser?._id],
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/${storeUser._id}`);
+      const response = await fetch(`${API_URL}/users/${storeUser._id}`);
       if (!response.ok) throw new Error('Failed to fetch user data');
       const data = await response.json();
       return data.user;
@@ -216,14 +216,14 @@ const UserProfile = () => {
               onPress={() => handleEditField('email', userData?.email)}
             >
               <View style={styles.emailRow}>
-                <Text style={styles.value}>
-                  {maskedEmail || 'Not set'}
-                </Text>
                 {userData?.email && (
                   <View style={styles.verifiedBadge}>
                     <Text style={styles.verifiedText}>✓ Verified</Text>
                   </View>
                 )}
+                <Text style={styles.value}>
+                  {maskedEmail || 'Not set'}
+                </Text>
               </View>
               <ExpandIcon style={styles.expandIcon} />
             </TouchableOpacity>
@@ -259,7 +259,7 @@ const UserProfile = () => {
             <Text style={styles.label}>Addresses</Text>
             <TouchableOpacity 
               style={styles.rightSection}
-              onPress={() => router.push('/addresses')}
+              onPress={() => router.push('./myaddress.jsx')}
             >
               <Text style={styles.value}>
                 {userData?.addresses?.length || 0} saved
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   emailRow: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     marginRight: 4,
   },

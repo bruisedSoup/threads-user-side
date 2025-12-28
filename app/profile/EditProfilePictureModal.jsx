@@ -9,7 +9,7 @@ const EditProfilePictureModal = ({ visible, userId, currentImage, onClose, onSav
   const queryClient = useQueryClient();
   const { refreshUser, updateUserField } = useUserStore();
 
-  const API_URL = 'http://10.0.2.2:3000/api/users';
+  const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
 
   const pickImage = async () => {
     try {
@@ -75,7 +75,7 @@ const EditProfilePictureModal = ({ visible, userId, currentImage, onClose, onSav
         size: imageAsset.fileSize || imageAsset.base64.length
       };
       
-      const response = await fetch(`${API_URL}/${userId}`, {
+      const response = await fetch(`${API_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ const EditProfilePictureModal = ({ visible, userId, currentImage, onClose, onSav
           onPress: async () => {
             setIsLoading(true);
             try {
-              const response = await fetch(`${API_URL}/${userId}`, {
+              const response = await fetch(`${API_URL}/users/${userId}`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',

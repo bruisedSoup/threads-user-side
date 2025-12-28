@@ -9,7 +9,7 @@ const EditFieldModal = ({ visible, field, label, currentValue, userId, onClose, 
   const queryClient = useQueryClient();
   const { refreshUser, updateUserField } = useUserStore(); // Add this
 
-  const API_URL = 'http://10.0.2.2:3000/api/users';
+  const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
 
   const handleSave = async () => {
     if (!value.trim()) {
@@ -36,7 +36,7 @@ const EditFieldModal = ({ visible, field, label, currentValue, userId, onClose, 
     setIsLoading(true);
     try {
       const updateData = { [field]: value };
-      const response = await fetch(`${API_URL}/${userId}`, {
+      const response = await fetch(`${API_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

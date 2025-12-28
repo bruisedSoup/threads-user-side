@@ -5,7 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import React, { useState } from 'react'
 import CustomButton from '../components/CustomButton'
 
-const apiUrl = process.env.EXPO_API_CREATE_ORDERS_URL || 'http://10.0.2.2:3000/api/orders/';
+const apiUrl = process.env.EXPO_API_CREATE_ORDERS_URL || 'http://192.168.1.2:3000/api/orders/';
 
 // 7-Eleven Official Colors
 const COLORS = {
@@ -30,7 +30,7 @@ const SevenElevenPayment = () => {
   const params = useLocalSearchParams()
   // `orderDetails` is passed as a JSON string from the checkout page
   const orderDetails = params?.orderDetails ? JSON.parse(params.orderDetails) : null
-  const total = orderDetails?.total || 0
+  const total = orderDetails?.order_total || 0
 
   const generateReferenceNumber = () => {
     return '7E' + Math.random().toString(36).substr(2, 8).toUpperCase() + Date.now().toString().substr(-4)

@@ -10,7 +10,7 @@ import useCartStore from '../stores/cartStore'
 import useSelectionStore from '../stores/useSelectionStore'
 import useUserStore from '../stores/userStore'
 
-const apiUrl = process.env.EXPO_API_CREATE_ORDERS_URL || 'http://10.0.2.2:3000/api/orders/';
+const apiUrl = process.env.EXPO_API_CREATE_ORDERS_URL || 'http://192.168.1.2:3000/api/orders/';
 
 const createOrderInBackend = async (order) => {
   const response = await fetch(apiUrl, {

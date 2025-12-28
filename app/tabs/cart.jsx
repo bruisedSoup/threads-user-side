@@ -13,7 +13,7 @@ import CheckIcon from '../components/checkicon';
 const Cart = () => {
   const router = useRouter();
   const { cart, clearCart, removeStore } = useCartStore();
-  const { 
+  const {
     selectedStores, 
     selectedProducts,
     selectAllStores, 
@@ -108,7 +108,7 @@ const Cart = () => {
 
       <ScrollView style={styles.scrollView}>
         {cart.map((store) => (
-          <StoreCard 
+          <StoreCard
             key={store.storeName} 
             storeName={store.storeName}
             onRemove={() => handleRemoveStore(store.storeName)}

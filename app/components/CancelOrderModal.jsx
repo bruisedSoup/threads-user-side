@@ -43,7 +43,7 @@ const CancelOrderModal = ({ visible, onClose, orderId, onSuccess }) => {
     setError('');
 
     try {
-      const apiUrl = process.env.EXPO_API_ORDERS_URL || 'http://10.0.2.2:3000/api/orders';
+      const apiUrl = process.env.EXPO_API_ORDERS_URL || 'http://192.168.1.2:3000/api/orders';
       const reason = selectedReason === 'Other' ? customReason : selectedReason;
 
       const response = await fetch(`${apiUrl}/${orderId}/cancel`, {

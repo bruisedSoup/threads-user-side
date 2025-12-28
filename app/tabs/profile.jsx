@@ -16,7 +16,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Buffer } from 'buffer';
 
 const fetchProducts = async () => {
-  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
   const response = await fetch(`${apiUrl}/products/`);
   if (!response.ok) {
     throw new Error('Failed to fetch products');

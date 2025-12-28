@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const apiUrl = process.env.EXPO_API_GET_CARTS_URL || 'http://10.0.2.2:3000/api/carts';
+const apiUrl = process.env.EXPO_API_GET_CARTS_URL || 'http://192.168.1.2:3000/api/carts';
 
 const syncCartWithBackend = async (cart) => {
   const response = await fetch(`${apiUrl}/${cart.user_id}`, {

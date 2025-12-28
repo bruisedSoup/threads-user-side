@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const apiUrl = process.env.EXPO_API_GET_USERS_URL || 'http://10.0.2.2:3000/api/users';
+const apiUrl = process.env.EXPO_API_GET_USERS_URL || 'http://192.168.1.2:3000/api/users';
 
 const fetchUserData = async (token, user_id) => {
   const response = await fetch(`${apiUrl}/${user_id}`, {

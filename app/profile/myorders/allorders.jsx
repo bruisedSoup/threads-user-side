@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import useUserStore from '../../stores/userStore';
 
 const fetchOrders = async (user_id) => {
-  const apiUrl = process.env.EXPO_API_ORDERS_URL || 'http://10.0.2.2:3000/api/orders/getAllOrders';
+  const apiUrl = process.env.EXPO_API_ORDERS_URL || 'http://192.168.1.2:3000/api/orders/getAllOrders';
   const response = await fetch(`${apiUrl}/${user_id}`);
   if (!response.ok) {
     throw new Error('Failed to fetch orders');
@@ -32,10 +32,10 @@ const AllOrders = () => {
   const tabs = [
     { key: 'All orders', label: 'All orders' },
     { key: 'Unpaid', label: 'Unpaid' },
+    { key: 'Cancelled', label: 'Cancelled' },
     { key: 'Processing', label: 'Processing' },
     { key: 'Shipped', label: 'Shipped' },
     { key: 'Review', label: 'Review' },
-    { key: 'Returns', label: 'Returns' },
   ];
 
   const { data: orders = [], isLoading, isError, error } = useQuery({

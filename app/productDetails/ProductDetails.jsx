@@ -17,7 +17,7 @@ import { Buffer } from 'buffer';
 const { width } = Dimensions.get('window');
 
 const fetchProductById = async (productId) => {
-  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
   const response = await fetch(`${apiUrl}/products/${productId}`);
   if (!response.ok) {
     throw new Error('Failed to fetch product');
@@ -27,7 +27,7 @@ const fetchProductById = async (productId) => {
 };
 
 const fetchProductReviews = async (productId) => {
-  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
   const response = await fetch(`${apiUrl}/reviews?product_id=${productId}`);
   if (!response.ok) {
     throw new Error('Failed to fetch reviews');
@@ -37,7 +37,7 @@ const fetchProductReviews = async (productId) => {
 };
 
 const submitReview = async ({ productId, userId, rating, comment }) => {
-  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
   const response = await fetch(`${apiUrl}/reviews`, {
     method: 'POST',
     headers: {
@@ -60,7 +60,7 @@ const submitReview = async ({ productId, userId, rating, comment }) => {
 };
 
 const toggleFollowSeller = async ({ userId, sellerId, isFollowing }) => {
-  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
   const url = isFollowing 
     ? `${apiUrl}/users/${userId}/follow/${sellerId}`
     : `${apiUrl}/users/${userId}/follow`;

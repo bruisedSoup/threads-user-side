@@ -10,9 +10,9 @@ const { useFonts, Unna_400Regular, Unna_700Bold } = require('@expo-google-fonts/
 const SignInPage = () => {
   const { setUser } = useUserStore();
 
-  const apiUrl = process.env.EXPO_API_URL || "http://10.0.2.2:3000/api";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:3000/api";
   const [ registerData, setRegisterData ] = useState(null);
-  const [ registerFormData, setRegisterFormData ] = useState({ //State to hold registration form data
+  const [ registerFormData, setRegisterFormData ] = useState({ 
     first_name: "",
     last_name: "",
     username: "",
@@ -27,45 +27,42 @@ const SignInPage = () => {
   });
 
 
-    /*
-    registerUser: Function to handle user registration by sending form data to the backend API.
-    **/
-    const registerUser = async (formData) => { //We're using async/await to handle the asynchronous nature of network requests.
+    const registerUser = async (formData) => { 
       const response = await fetch(`${apiUrl}/auth/register`, {
-        method: 'POST', //Specifying the HTTP method as POST to send data to the server.
+        method: 'POST', 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData), //Converting the form data to a JSON string to send in the request body.
+        body: JSON.stringify(formData), 
       });
-      const data = await response.json(); //Parsing the JSON response from the server.
-      setRegisterData(data); //Storing the response data in the registerData state variable. We can use this data to provide feedback to the user.
+      const data = await response.json(); 
+      setRegisterData(data); 
       return data;
     }
 
-  const registerMutation = useMutation({ //Using React Query's useMutation hook to manage the registration process.
-    mutationFn: registerUser, //Specifying the function to be called when the mutation is triggered.
-    onSuccess: (data) => { //Callback function to handle successful registration.
+  const registerMutation = useMutation({ 
+    mutationFn: registerUser, 
+    onSuccess: (data) => { 
       console.log('Registration Successful: ', data)
-      if (data && data.success) {//If the registration is successful, navigate to the home screen.
+      if (data && data.success) {
         setUser(data.token, data.user.user_id);
         router.replace('/tabs/home');
       }
     },
-    onError: (error) => { //Callback function to handle errors during registration.
+    onError: (error) => { 
       console.log('Registration error:', error)
     },
   })
 
-  const handleSubmitRegistration = (e) => { //Function to handle form submission for registration.
-    e.preventDefault(); //Preventing the default form submission behavior. Para dili siya ma submit maskig walay sulod ang fields.
-    registerMutation.mutate(registerFormData); //Triggering the mutation with the current form data.
+  const handleSubmitRegistration = (e) => { 
+    e.preventDefault();
+    registerMutation.mutate(registerFormData);
   }
 
-  const registerHandleChange = (fieldName, text) => { //Function to handle changes in the registration form fields.
+  const registerHandleChange = (fieldName, text) => { 
     setRegisterFormData({
-      ...registerFormData, //Spreading the existing form data to retain unchanged fields.
-      [fieldName]: text, //Updating the specific field with the new value.
+      ...registerFormData, 
+      [fieldName]: text,
     });
   }
 
@@ -77,6 +74,7 @@ const SignInPage = () => {
       },
       body: JSON.stringify(formData), 
     });
+    
     const data = await response.json();
     return data;
   }
@@ -87,6 +85,8 @@ const SignInPage = () => {
       if (data && data.success) {
         setUser(data.token, data.user.user_id);
         router.replace('/tabs/home');
+      } else if (data.success === 'false') {
+        Alert.alert('Login Failed', data.message || 'Invalid email or password.');
       }
     },
     onError: (error) => {

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import BackIcon from './backicon.jsx'; 
 import useUserStore from '../stores/userStore.js';
 
-const apiUrl = process.env.EXPO_API_USERS_URL || 'http://10.0.2.2:3000/api/users';
+const apiUrl = process.env.EXPO_API_USERS_URL || 'http://192.168.1.2:3000/api/users';
 
 const createAddress = async (userId, addressData) => {
   if (!userId) {
